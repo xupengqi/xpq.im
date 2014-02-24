@@ -35,6 +35,7 @@
         <ul class="nav navbar-nav">
         <li class="active"><a href="/">Resume</a></li>
         <li><a href="repo.php">GitHub</a></li>
+        <li><a href="widgets.php">Widgets</a></li>
         <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
             <ul class="dropdown-menu">

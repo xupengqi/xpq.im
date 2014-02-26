@@ -10,8 +10,7 @@
         <div class="row">
         <div class="col-xs-4 text-center">
         </div>
-        <div class="col-xs-4 text-center">
-        <div id="repos" class="list-group"></div>
+        <div class="col-xs-4 text-center" id="repos">
         </div>
         <div class="col-xs-4 text-center">
         </div>
@@ -29,7 +28,7 @@
                     });
 
                     $("<ul/>", {
-                        "class" : "my-new-list",
+                        "class" : "list-group",
                         html : items.join("")
                     }).appendTo("#repos");
                 });

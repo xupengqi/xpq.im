@@ -7,7 +7,7 @@ class Model extends MVC {
         $this->context = $c;
         $this->table = $t;
 
-        $config = $this->context->getConfig();
+        $config = $this->context->config;
         $this->mysqli = new mysqli($config['db']['host'], $config['db']['user'], $config['db']['pass'], $config['db']['name']);
         if ($this->mysqli->connect_error) {
             $this->context->loadHelpers(array('response'));

@@ -1,6 +1,16 @@
 <?php
 class Context {
-    public $config;
+    public $config = array(
+            'debug' => true,
+            'appDir' => '/xpq.im/',
+            'appPath' => '/',
+            'controllerPath' => '/controller/',
+            'db'	=> array(
+                    'host' => '127.0.0.1',
+                    'user' => 'mobile1',
+                    'pass' => '@mobile-development',
+                    'name' => 'broadcaster')
+    );
     public $controller;
     public $controllerName;
     public $controllerClass;
@@ -10,27 +20,20 @@ class Context {
     public $request = array();
     public $helpers = array();
     public $models = array();
+    public $debug = array();
 
     public function __construct() {
-        $this->config = new Config();
-        if($this->config->config['debug']) {
+        if($this->config['debug']) {
             ini_set('display_errors', 1);
             ini_set('html_errors', 1);
         }
     }
 
-    public function getConfig() {
-        return $this->config->config;
-    }
-
     public function setController($ctrl) {
-        require_once $this->config->config['controllerPath']."$ctrl.php";
+        require_once $this->config['controllerPath']."$ctrl.php";
         $this->controllerName = $ctrl;
         $this->controllerClass = $ctrl.'Controller';
         $this->controller  = new $this->controllerClass($this);
-    }
-    public function getControllerName() {
-        return $this->controllerName;
     }
 
     public function setAction($a) {
@@ -40,21 +43,20 @@ class Context {
     public function setView($view) {
         $this->view = $view;
     }
+    
     public function setModule($key, $val) {
         $this->modules[$key] = $val;
     }
 
     public function setParam($key, $val) {
         $this->request[$key] = $val;
-
-        if($key == 'token') {
-            $this->loadModels(array('user'));
-            $this->loadHelpers(array('response'));
-            $this->user = $this->models['user']->getSingle(array('token'=>$val), false);
-        }
     }
-
-    public function getParam($key) {
-        return $this->request[$key];
+    
+    public function log_debug($key, $val) {
+        $this->debug[$key] = $val;
+    }
+    public function log_error($key, $val) {
+        $this->debug[$key] = $val;
+        error_log("$key :: $val");
     }
 }

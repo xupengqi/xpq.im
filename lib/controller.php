@@ -8,7 +8,8 @@ class Controller {
 
     public function render() {
         // call controller/action
-        $this->context->action();
+        $action = $this->context->action;
+        $this->$action();
 
         // render view
         $view = new View($this->context);

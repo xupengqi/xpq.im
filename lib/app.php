@@ -8,7 +8,7 @@ class App {
 
     public function Dispatch() {
         $requestParts = explode('?', $_SERVER['REQUEST_URI']);
-        $config = $this->context->getConfig();
+        $config = $this->context->config;
         $url = substr($requestParts[0], strlen($config['appPath']));
         $path = explode('/', $url);
         
@@ -29,25 +29,29 @@ class App {
     }
 
     private function processController($path) {
-        $config = $this->context->getConfig();
+        $config = $this->context->config;
+        $ctrlPath = getcwd()."/{$config['controllerPath']}/{$path[0]}.php";
 
-        if(empty($path[0]) || $path[0] == 'index.php') {
+        if(empty($path[0])) {
             $this->context->setController('index');
+            $this->context->log_debug('controller', 'index, default');
             return 0;
         }
-        else if(file_exists(getcwd()."/".$config['controllerPath']."/{$path[0]}.php")) {
+        else if(file_exists($ctrlPath)) {
             $this->context->setController($path[0]);
+            $this->context->log_debug('controller', 'index, default');
             return 1;
         }
         else {
             $this->context->setController('Error');
-            $this->context->setParam('error', 'Requested page '.$config['appPath'].'<b>'.$path[0].'</b> not found.');
+            $this->context->setParam('error', 'Requested page <b>'.$path[0].'</b> not found.');
+            $this->context->log_debug('controller not found', $ctrlPath);
             return -1;
         }
     }
 
     private function processAction($path, $actionIndex) {
-        $config = $this->context->getConfig();
+        $config = $this->context->config;
         $actionName = null;
         
         if (method_exists($this->context->controllerClass, 'index')) {
@@ -66,7 +70,7 @@ class App {
         }
         else {
             $this->context->setController('Error');
-            $this->context->setParam('error', 'Requested action <b>'.$actionName.'</b> or default action not found in page '.$config['appPath'].$this->context->controllerName.'.');
+            $this->context->setParam('error', 'Requested action <b>'.$actionName.'</b> or default action not found in page '.$this->context->controllerName.'.');
             return -1;
         }
     }

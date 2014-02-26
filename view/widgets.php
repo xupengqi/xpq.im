@@ -68,5 +68,6 @@
             background: linear-gradient(to right, #0064d0 1%, #ffffff 50%, #0064d0 100%);
         }
         </style>
+        <?php echo $this->renderModule('debug'); ?>
         </body>
 </html>

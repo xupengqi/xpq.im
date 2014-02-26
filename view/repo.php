@@ -8,8 +8,12 @@
 
         <div class="container-fluid">
         <div class="row">
-        <div class="col-xs-12 text-center">
+        <div class="col-xs-4 text-center">
+        </div>
+        <div class="col-xs-4 text-center">
         <div id="repos" class="list-group"></div>
+        </div>
+        <div class="col-xs-4 text-center">
         </div>
         </div>
         </div>
@@ -21,7 +25,7 @@
                 $.getJSON("https://api.github.com/users/xupengqi/repos", function(data) {
                     var items = [];
                     $.each(data, function(key, val) {
-                        items.push("<a class='list-group-item' id='" + key + "'>" + val.name + "</a>");
+                        items.push("<a class='list-group-item' href='" + val.html_url + "'>" + val.name + "</a>");
                     });
 
                     $("<ul/>", {
@@ -31,5 +35,6 @@
                 });
             });
         </script>
+        <?php echo $this->renderModule('debug'); ?>
         </body>
 </html>

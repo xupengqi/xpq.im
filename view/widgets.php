@@ -19,8 +19,8 @@
         </div>
         </div>
 
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        <?php echo $this->renderModule('js'); ?>
+        <?php echo $this->renderModule('debug'); ?>
         <script>
                 function testProgress() {
                     $(".dd-progressbar").css({width: "0%"});
@@ -68,6 +68,5 @@
             background: linear-gradient(to right, #0064d0 1%, #ffffff 50%, #0064d0 100%);
         }
         </style>
-        <?php echo $this->renderModule('debug'); ?>
         </body>
 </html>

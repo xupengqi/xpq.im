@@ -7,8 +7,12 @@ class View {
     }
 
     public function render() {
+        $backup_view = getcwd()."/view/{$this->context->controllerName}.php";
         if(!empty($this->context->view)) {
             require_once '/view/'.$this->context->view.'.php';
+        }
+        else if (file_exists($backup_view)) {
+            require_once $backup_view;
         }
         else {
             require_once '/view/error.php';

@@ -9,7 +9,7 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-xs-12 text-center">
-                Requested view is not found.
+                    simworld
                 </div>
 
             </div>

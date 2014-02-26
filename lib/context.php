@@ -17,7 +17,7 @@ class Context {
     public $action;
     public $view;
     public $modules = array();
-    public $request = array();
+    public $params = array();
     public $helpers = array();
     public $models = array();
     public $debug = array();
@@ -48,8 +48,10 @@ class Context {
         $this->modules[$key] = $val;
     }
 
-    public function setParam($key, $val) {
-        $this->request[$key] = $val;
+    public function setParam($key, $val, $default = false) {
+        if ($default && !isset($this->params[$key]) || !$default) {
+            $this->params[$key] = $val;
+        }
     }
     
     public function log_debug($key, $val) {

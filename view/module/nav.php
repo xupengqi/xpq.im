@@ -1,3 +1,9 @@
+<?php
+    $this->context->setParam('nav.button.resume.class', '', true);
+    $this->context->setParam('nav.button.git.class', '', true);
+    $this->context->setParam('nav.button.widgets.class', '', true);
+    $this->context->setParam('nav.button.simworld.class', '', true);
+?>
 <nav class="navbar navbar-default" role="navigation">
 	<div class="container-fluid">
 		<!-- Brand and toggle get grouped for better mobile display -->
@@ -16,14 +22,17 @@
 			id="bs-example-navbar-collapse-1">
 			<ul class="nav navbar-nav">
 				<li
-					class="<?php echo $this->context->request['navButtonClass']['resume']; ?>"><a
+					class="<?php echo $this->context->params['nav.button.resume.class']; ?>"><a
 					href="/">Resume</a></li>
 				<li
-					class="<?php echo $this->context->request['navButtonClass']['git']; ?>"><a
+					class="<?php echo $this->context->params['nav.button.git.class']; ?>"><a
 					href="repo">GitHub</a></li>
 				<li
-					class="<?php echo $this->context->request['navButtonClass']['widgets']; ?>"><a
+					class="<?php echo $this->context->params['nav.button.widgets.class']; ?>"><a
 					href="widgets">Widgets</a></li>
+				<li
+					class="<?php echo $this->context->params['nav.button.simworld.class']; ?>"><a
+					href="simworld">SimWorld</a></li>
 				<li class="dropdown" style="display: none;"><a href="#"
 					class="dropdown-toggle" data-toggle="dropdown">Dropdown <b
 						class="caret"></b>

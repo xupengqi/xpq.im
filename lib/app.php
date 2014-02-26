@@ -11,17 +11,10 @@ class App {
         $config = $this->context->config;
         $url = substr($requestParts[0], strlen($config['appPath']));
         $path = explode('/', $url);
-        
+
         $curIndex = $this->processController($path);
-        if ($curIndex < 0) {
-            return;
-        }
-        
         $curIndex = $this->processAction($path, $curIndex);
-        if ($curIndex < 0) {
-            return;
-        }
-        
+
         $this->processRequestVars($path, $curIndex);
 
         // start controller and render
@@ -46,33 +39,26 @@ class App {
             $this->context->setController('Error');
             $this->context->setParam('error', 'Requested page <b>'.$path[0].'</b> not found.');
             $this->context->log_debug('controller not found', $ctrlPath);
-            return -1;
+            return 0;
         }
     }
 
     private function processAction($path, $actionIndex) {
         $config = $this->context->config;
         $actionName = null;
-        
+
         if (method_exists($this->context->controllerClass, 'index')) {
             $actionName = 'index';
         }
-        
+
         if(count($path) > $actionIndex && !empty($path[$actionIndex]) && method_exists($this->context->controllerClass, $path[$actionIndex])) {
             $actionName = $path[$actionIndex];
             $actionIndex++;
         }
-        
 
-        if($actionName != null) {
-            $this->context->setAction($actionName);
-            return $actionIndex;
-        }
-        else {
-            $this->context->setController('Error');
-            $this->context->setParam('error', 'Requested action <b>'.$actionName.'</b> or default action not found in page '.$this->context->controllerName.'.');
-            return -1;
-        }
+        $this->context->setAction($actionName);
+
+        return $actionIndex;
     }
 
     private function processRequestVars($path, $varIndex) {

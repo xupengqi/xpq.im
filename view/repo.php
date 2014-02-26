@@ -17,8 +17,8 @@
         </div>
         </div>
 
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        <?php echo $this->renderModule('js'); ?>
+        <?php echo $this->renderModule('debug'); ?>
         <script>
             $(function() {
                 $.getJSON("https://api.github.com/users/xupengqi/repos", function(data) {
@@ -34,6 +34,5 @@
                 });
             });
         </script>
-        <?php echo $this->renderModule('debug'); ?>
         </body>
 </html>

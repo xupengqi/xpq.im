@@ -20,8 +20,8 @@
         <script src="/js/three.min.js"></script>
         <script src="/js/stats.min.js"></script>
         <script src="/js/simworld.js"></script>
-        <script src="/js/simworld_add_block.js"></script>
         <script src="/js/simworld_debug_info.js"></script>
+        <script src="/js/simworld_road.js"></script>
         <?php echo $this -> renderModule('camera_controls'); ?>
     </body>
 </html>

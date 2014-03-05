@@ -20,11 +20,9 @@ var roads = [];
 var roadsByVertices = {};
 var roadVertices = [];
 var drawRoad = function() {
-    var r = new THREE.Shape(), color = 0x333333;
-    var x = roadStart.x, y = 1, z = roadStart.z, radius = 5, height = 150, roadSize = 20;
-    var line = new THREE.Line3(roadStart, roadEnd);
+    var color = 0x333333, roadSize = 20;
+    var r = new THREE.Shape(), line = new THREE.Line3(roadStart, roadEnd);
 
-//TODO: CALCULATE POSITION WITHOUT ROTATION
     r.moveTo(0, 0);
     r.lineTo(0, -roadSize / 2);
     //console.log(line.distance()+","+(roadEnd.x-roadStart.x));
@@ -36,7 +34,7 @@ var drawRoad = function() {
     roadGeo = new THREE.ShapeGeometry(r);
     sw.getScene().remove(roadMesh);
     roadMesh = new THREE.Mesh(roadGeo, new THREE.MeshBasicMaterial( { color: color } ));
-    roadMesh.position.set(x, y, z);
+    roadMesh.position.set(roadStart.x, 1, roadStart.z);
     roadMesh.rotation.x = -Math.PI / 2;
 
     var axis = new THREE.Vector3();
@@ -49,6 +47,35 @@ var drawRoad = function() {
     roadMesh.rotation.z = theta;
 
     sw.getScene().add(roadMesh);
+};
+var drawRoadNoRotation = function(start, end) {
+    var color = 0x333333, roadSize = 20;
+    var s = new THREE.Shape();
+    var v = end.sub(start);
+    //v.normalize TODO: for intersection
+    var v1 = new THREE.Vector3(-v.z, 0, v.x);
+    v1.setLength(roadSize/2);
+    var v11 = new THREE.Vector3(v1.x+v.x, 0, v1.z+v.z);
+    var v2 = new THREE.Vector3(v.z, 0, -v.x);
+    v2.setLength(roadSize/2);
+    var v22 = new THREE.Vector3(v2.x+v.x, 0, v2.z+v.z);
+    
+    s.moveTo(v1);
+    s.lineTo(v11);
+    s.lineTo(v22);
+    s.lineTo(v2);
+
+//    roadGeo = new THREE.ShapeGeometry(s);
+//    sw.getScene().remove(roadMesh);
+//    roadMesh = new THREE.Mesh(roadGeo, new THREE.MeshBasicMaterial( { color: color } ));
+//    roadMesh.position.set(start.x, 1, start.z);
+//    sw.getScene().add(roadMesh);
+//    console.log(v11.sub(v1).length());
+//    console.log(v22.sub(v2).length());
+    console.log(v.length());
+    console.log((new THREE.Line3(v1,v11)).distance());
+    console.log((new THREE.Line3(v2,v22)).distance());
+    return [v1,v11,v22,v2];
 };
 var nearJoint = function() {
     var detectDist = 10;

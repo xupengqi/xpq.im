@@ -1,4 +1,5 @@
 var points = [], curveLine;
+var intersectionSize = 50;
 var getCurveLine = function(pts, sub) {
     var spline = new THREE.Spline(pts);
     var geometrySpline = new THREE.Geometry();
@@ -69,6 +70,29 @@ var getRoadVertices = function(start, end, maxLength) {
     var v22 = new THREE.Vector3(v2.x + v.x, 1, v2.z + v.z);
     return [ v1, v11, v22, v2 ];
 };
+var getRoadsInOrder = function(start, ends) {
+    var ordered = [[0, ends[0]]];
+    var v0 = ends[0].clone().sub(start);
+    v0.normalize();
+    
+    for (var i=1; i<ends.length; i++) {
+        var vv = ends[i].clone().sub(start);
+        vv.normalize();
+        var d = v0.dot(vv);
+        var inserted = false;
+        for (var j=0; j<ordered.length; j++) {
+            if (d < ordered[j][0]) {
+                ordered.splice(j, 0, [d,ends[i]]);
+                inserted = true;
+                break;
+            }
+        }
+        if (!inserted) {
+            ordered.push([d,ends[i]]);
+        }
+    }
+    return ordered;
+};
 var drawRoadNoRotation = function(start, end) {
     var color = 0x333333;
     var s = new THREE.Shape();
@@ -104,37 +128,47 @@ var nearJoint = function() {
             });
     return result;
 };
-var createJoint = function(joint) {
-    var roadPrevStart = roadsByVertices[joint.x][joint.z][0].clone();
-    // THREE.GeometryUtils.merge(existingRoadGeo,newRoadGeo);
-    // console.log("roadStart:" + roadStart.x + "," + roadStart.z);
-    // console.log("ttt");
-    // console.dir([existingRoadGeo.vertices]);
-    // console.dir([newRoadGeo.vertices]);
-
-    var color = 0xFFFFFF;
-    
-    var va = getRoadVertices(joint, roadPrevStart, 50);
-    var vb = getRoadVertices(joint, roadEnd, 50);
-    var sa = new THREE.Shape();
-
-//    sa.moveTo(va[0].x, -va[0].z);
-//    sa.lineTo(va[1].x, -va[1].z);
-//    sa.lineTo(va[2].x, -va[2].z);
-//    sa.lineTo(va[3].x, -va[3].z);
+var drawPartialJoint = function(shape, joint, end1, end2, close) {
+    var va = getRoadVertices(joint, end1, intersectionSize);
+    var vb = getRoadVertices(joint, end2, intersectionSize);
 
     var line1 = new THREE.Line3(new THREE.Vector3(va[1].x, 0, -va[1].z),new THREE.Vector3(va[0].x, 0, -va[0].z));
-    var int1 = line1.closestPointToPoint(new THREE.Vector3(vb[3].x, 0, -vb[3].z)); // TODO: MATCH RESULT WITH USING VB[2]
+    var int1 = line1.closestPointToPoint(new THREE.Vector3(vb[3].x, 0, -vb[3].z));
+    
+    shape.quadraticCurveTo(int1.x, int1.z, vb[2].x, -vb[2].z);
+    if (close) {
+        shape.lineTo(vb[1].x, -vb[1].z);
+    }
+};
+var createJoint = function(joint) {
+    var color = 0xFFFFFF;
+    var sa = new THREE.Shape();
+    
+    var ordered = getRoadsInOrder(joint, roadsByVertices[joint.x][joint.z].concat(roadEnd));
+    console.log(ordered);
+    var va = getRoadVertices(joint, ordered[0][1], intersectionSize);
+    sa.moveTo(va[1].x, -va[1].z);
+    for (var i = 0; i < ordered.length-1; i++) {
+        drawPartialJoint(sa, joint, ordered[i][1], ordered[i+1][1], true);
+    }
+    drawPartialJoint(sa, joint, ordered[i][1], ordered[0][1], false);
+    
+    /*var roadPrevStart = roadsByVertices[joint.x][joint.z][0].clone();
+    var va = getRoadVertices(joint, roadPrevStart, intersectionSize);
+    var vb = getRoadVertices(joint, roadEnd, intersectionSize);
+
+    var line1 = new THREE.Line3(new THREE.Vector3(va[1].x, 0, -va[1].z),new THREE.Vector3(va[0].x, 0, -va[0].z));
+    var int1 = line1.closestPointToPoint(new THREE.Vector3(vb[3].x, 0, -vb[3].z));
     var line2 = new THREE.Line3(new THREE.Vector3(va[3].x, 0, -va[3].z),new THREE.Vector3(va[2].x, 0, -va[2].z));
     var int2 = line2.closestPointToPoint(new THREE.Vector3(vb[0].x, 0, -vb[0].z));
     
     sa.moveTo(va[1].x, -va[1].z);
     sa.quadraticCurveTo(int1.x, int1.z, vb[2].x, -vb[2].z);
     sa.lineTo(vb[1].x, -vb[1].z);
-    sa.quadraticCurveTo(int2.x, int2.z, va[2].x, -va[2].z);
+    sa.quadraticCurveTo(int2.x, int2.z, va[2].x, -va[2].z);*/
     
     var ga = new THREE.ShapeGeometry(sa);
-    sw.getScene().remove(jointMesh); //TODO: REMOVE PREV JOINT
+    sw.getScene().remove(jointMesh);
     jointMesh = new THREE.Mesh(ga, new THREE.MeshBasicMaterial({
         color : color
     }));
@@ -225,3 +259,23 @@ Object.getPrototypeOf(sw).initLine = function() {
     sw.setVoxelPositionGrid(false);
 };
 sw.addCallback('init', sw.initLine, []);
+
+var getAngle = function(v1) {
+    return Math.atan2(v1.z, v1.x) * (180 / Math.PI);
+};
+var z = new THREE.Vector3(1,0,0);
+var a = new THREE.Vector3(1,0,0);
+var b = new THREE.Vector3(1,0,1);
+b.normalize();
+//console.log(Math.acos(a.dot(b)));
+console.log(getAngle(z.dot(a)));
+console.log(getAngle(z.dot(b)));
+var c = new THREE.Vector3(0,0,1);
+//console.log(a.dot(c));
+console.log(getAngle(z, c));
+var e = new THREE.Vector3(-1,0,0 );
+//console.log(a.dot(e));
+console.log(getAngle(z,d));
+var d = new THREE.Vector3(0,0,-1);
+//console.log(a.dot(d));
+console.log(getAngle(z,e));

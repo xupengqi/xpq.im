@@ -70,16 +70,20 @@ var getRoadVertices = function(start, end, maxLength) {
     var v22 = new THREE.Vector3(v2.x + v.x, 1, v2.z + v.z);
     return [ v1, v11, v22, v2 ];
 };
+var getAngle = function(x, y) {
+    return Math.atan2(y,x) / Math.PI * 180;
+};
 var getRoadsInOrder = function(start, ends) {
-    var ordered = [[0, ends[0]]];
+    var ordered = [];
     var v0 = ends[0].clone().sub(start);
     v0.normalize();
+    ordered.push([getAngle(v0.x, v0.z), ends[0]]);
     
     for (var i=1; i<ends.length; i++) {
         var vv = ends[i].clone().sub(start);
         vv.normalize();
-        var d = v0.dot(vv);
         var inserted = false;
+        var d = getAngle(vv.x, vv.z);
         for (var j=0; j<ordered.length; j++) {
             if (d < ordered[j][0]) {
                 ordered.splice(j, 0, [d,ends[i]]);
@@ -260,22 +264,25 @@ Object.getPrototypeOf(sw).initLine = function() {
 };
 sw.addCallback('init', sw.initLine, []);
 
-var getAngle = function(v1) {
-    return Math.atan2(v1.z, v1.x) * (180 / Math.PI);
-};
-var z = new THREE.Vector3(1,0,0);
-var a = new THREE.Vector3(1,0,0);
-var b = new THREE.Vector3(1,0,1);
-b.normalize();
-//console.log(Math.acos(a.dot(b)));
-console.log(getAngle(z.dot(a)));
-console.log(getAngle(z.dot(b)));
-var c = new THREE.Vector3(0,0,1);
-//console.log(a.dot(c));
-console.log(getAngle(z, c));
-var e = new THREE.Vector3(-1,0,0 );
-//console.log(a.dot(e));
-console.log(getAngle(z,d));
-var d = new THREE.Vector3(0,0,-1);
-//console.log(a.dot(d));
-console.log(getAngle(z,e));
+//var getAngle = function(a, b) {
+//    return Math.acos(a.dot(b)) / Math.PI * 180;
+//};
+//var getAngle2 = function(x, y) {
+//    return Math.atan2(y,x) / Math.PI * 180;
+//};
+//var z = new THREE.Vector3(1,0,0);
+//var a = new THREE.Vector3(1,0,0);
+//var b = new THREE.Vector3(1,0,1);
+//var c = new THREE.Vector3(0,0,1);
+//var d = new THREE.Vector3(-1,0,1);
+//var e = new THREE.Vector3(0,0,-1);
+//b.normalize();
+//console.log(getAngle2(1,0)); // 0
+//console.log(getAngle2(b.x, b.z)); // 45
+//console.log(getAngle2(0,1));
+//console.log(getAngle2(0,-1));
+//console.log(getAngle(z, a)); // 0
+//console.log(getAngle(z, b)); // 45
+//console.log(getAngle(z, c)); // 90
+//console.log(getAngle(z, d)); // 180
+//console.log(getAngle(z, e)); // -90

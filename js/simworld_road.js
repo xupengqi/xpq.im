@@ -17,42 +17,11 @@ var getCurveLine = function(pts, sub) {
     }), THREE.LineStrip);
 };
 
-var roadStart, roadEnd, roadMesh, roadGeo, jointMesh;
+var roadStart, roadEnd, roadMesh, jointMesh, jointMeshEnd;
 var roads = [];
 var joints = [];
 var roadsByVertices = {};
 var roadVertices = [];
-var drawRoad = function() {
-    var color = 0x333333, roadSize = 20;
-    var r = new THREE.Shape(), line = new THREE.Line3(roadStart, roadEnd);
-
-    r.moveTo(0, 0);
-    r.lineTo(0, -roadSize / 2);
-    // console.log(line.distance()+","+(roadEnd.x-roadStart.x));
-    r.lineTo(-line.distance(), -roadSize / 2);
-    r.lineTo(-line.distance(), 0);
-    r.lineTo(-line.distance(), roadSize / 2);
-    r.lineTo(0, roadSize / 2);
-
-    roadGeo = new THREE.ShapeGeometry(r);
-    sw.getScene().remove(roadMesh);
-    roadMesh = new THREE.Mesh(roadGeo, new THREE.MeshBasicMaterial({
-        color : color
-    }));
-    roadMesh.position.set(roadStart.x, 1, roadStart.z);
-    roadMesh.rotation.x = -Math.PI / 2;
-
-    var axis = new THREE.Vector3();
-    axis.subVectors(roadEnd, roadStart);
-    axis.normalize();
-    var theta = Math.acos(axis.dot(new THREE.Vector3(-1, 0, 0)));
-    if (axis.z < 0) {
-        theta = -theta;
-    }
-    roadMesh.rotation.z = theta;
-
-    sw.getScene().add(roadMesh);
-};
 var getRoadVertices = function(start, end, maxLength) {
     var roadSize = 20;
     var v = end.clone().sub(start);
@@ -106,7 +75,7 @@ var drawRoadNoRotation = function(start, end) {
     s.lineTo(vs[1].x, -vs[1].z);
     s.lineTo(vs[2].x, -vs[2].z);
     s.lineTo(vs[3].x, -vs[3].z);
-    roadGeo = new THREE.ShapeGeometry(s);
+    var roadGeo = new THREE.ShapeGeometry(s);
     sw.getScene().remove(roadMesh);
     roadMesh = new THREE.Mesh(roadGeo, new THREE.MeshBasicMaterial({
         color : color
@@ -115,21 +84,19 @@ var drawRoadNoRotation = function(start, end) {
     roadMesh.rotation.x = -Math.PI / 2;
     sw.getScene().add(roadMesh);
 };
-var nearJoint = function() {
+var nearJoint = function(pt) {
     var detectDist = 20;
-    var minX = roadStart.x - detectDist;
-    var maxX = roadStart.x + detectDist;
-    var minZ = roadStart.z - detectDist;
-    var maxZ = roadStart.z + detectDist;
+    var minX = pt.x - detectDist;
+    var maxX = pt.x + detectDist;
+    var minZ = pt.z - detectDist;
+    var maxZ = pt.z + detectDist;
     var result = null;
-    $(roadVertices).each(
-            function() {
-                // console.log([minX, maxX, this.x, minZ, maxZ, this.z]);
-                if (!result && minX <= this.x && this.x <= maxX
-                        && minZ <= this.z && this.z <= maxZ) {
-                    result = this;
-                }
-            });
+    $(roadVertices).each(function() {
+        if (!result && minX <= this.x && this.x <= maxX
+                && minZ <= this.z && this.z <= maxZ) {
+            result = this;
+        }
+    });
     return result;
 };
 var drawPartialJoint = function(shape, joint, end1, end2, close) {
@@ -144,12 +111,11 @@ var drawPartialJoint = function(shape, joint, end1, end2, close) {
         shape.lineTo(vb[1].x, -vb[1].z);
     }
 };
-var createJoint = function(joint) {
+var createJoint = function(joint, newEnd, isStart) {
     var color = 0xFFFFFF;
     var sa = new THREE.Shape();
     
-    var ordered = getRoadsInOrder(joint, roadsByVertices[joint.x][joint.z].concat(roadEnd));
-    console.log(ordered);
+    var ordered = getRoadsInOrder(joint, roadsByVertices[joint.x][joint.z].concat(newEnd));
     var va = getRoadVertices(joint, ordered[0][1], intersectionSize);
     sa.moveTo(va[1].x, -va[1].z);
     for (var i = 0; i < ordered.length-1; i++) {
@@ -157,28 +123,25 @@ var createJoint = function(joint) {
     }
     drawPartialJoint(sa, joint, ordered[i][1], ordered[0][1], false);
     
-    /*var roadPrevStart = roadsByVertices[joint.x][joint.z][0].clone();
-    var va = getRoadVertices(joint, roadPrevStart, intersectionSize);
-    var vb = getRoadVertices(joint, roadEnd, intersectionSize);
-
-    var line1 = new THREE.Line3(new THREE.Vector3(va[1].x, 0, -va[1].z),new THREE.Vector3(va[0].x, 0, -va[0].z));
-    var int1 = line1.closestPointToPoint(new THREE.Vector3(vb[3].x, 0, -vb[3].z));
-    var line2 = new THREE.Line3(new THREE.Vector3(va[3].x, 0, -va[3].z),new THREE.Vector3(va[2].x, 0, -va[2].z));
-    var int2 = line2.closestPointToPoint(new THREE.Vector3(vb[0].x, 0, -vb[0].z));
-    
-    sa.moveTo(va[1].x, -va[1].z);
-    sa.quadraticCurveTo(int1.x, int1.z, vb[2].x, -vb[2].z);
-    sa.lineTo(vb[1].x, -vb[1].z);
-    sa.quadraticCurveTo(int2.x, int2.z, va[2].x, -va[2].z);*/
-    
     var ga = new THREE.ShapeGeometry(sa);
-    sw.getScene().remove(jointMesh);
-    jointMesh = new THREE.Mesh(ga, new THREE.MeshBasicMaterial({
+
+    var mesh = jointMesh;
+    if (!isStart) {
+    	mesh = jointMeshEnd;
+    }
+    sw.getScene().remove(mesh);
+    mesh = new THREE.Mesh(ga, new THREE.MeshBasicMaterial({
         color : color
     }));
-    jointMesh.position.set(joint.x, 2, joint.z);
-    jointMesh.rotation.x = -Math.PI / 2;
-    sw.getScene().add(jointMesh);
+    mesh.position.set(joint.x, 2, joint.z);
+    mesh.rotation.x = -Math.PI / 2;
+    sw.getScene().add(mesh);
+    if (isStart) {
+    	jointMesh = mesh;
+    }
+    else {
+    	jointMeshEnd = mesh;
+    }
 };
 
 Object.getPrototypeOf(sw).startLine = function() {
@@ -186,37 +149,45 @@ Object.getPrototypeOf(sw).startLine = function() {
         points.push(sw.getVoxelPosition().clone());
     }
     roadStart = sw.getVoxelPosition().clone();
-    // console.log("start:"+roadStart.x+","+roadStart.z);
 };
 sw.addCallback('onMouseDown', sw.startLine, []);
 
 Object.getPrototypeOf(sw).renderTempLine = function() {
-    // var tempPoints = points.concat(sw.getVoxelPosition().clone());
-    // sw.getScene().remove(curveLine);
-    // getCurveLine(points.concat(sw.getVoxelPosition().clone()), 6);
-    // sw.getScene().add(curveLine);
-
     roadEnd = sw.getVoxelPosition().clone();
-    var joint = nearJoint();
+    var rl = roadEnd.clone().sub(roadStart);
+    if (rl.length() < 50) {
+    	rl.setLength(50);
+    	roadEnd = rl.add(roadStart);
+    }
+    
+    var joint = nearJoint(roadStart);
     if (joint) {
         roadStart = joint;
-        createJoint(joint);
+        createJoint(joint, roadEnd, true);
+    }
+    var endJoint = nearJoint(roadEnd);
+    if (endJoint && (endJoint != joint)) {
+    	
+    	console.log("end"+rl.length());
+    	roadEnd = endJoint;
+        createJoint(endJoint, roadStart, false);
     }
     drawRoadNoRotation(roadStart, roadEnd);
+    
 };
 sw.addCallback('onMouseDrag', sw.renderTempLine, []);
 
 Object.getPrototypeOf(sw).endLine = function() {
-    // points.push(sw.getVoxelPosition().clone());
-    // sw.getScene().remove(curveLine);
-    // getCurveLine(points, 6);
-    // sw.getScene().add(curveLine);
-
     roads.push(roadMesh);
     roadVertices.push(roadStart.clone()); //TODO: IF HAS JOINT, DON'T PUSH START
     roadVertices.push(roadEnd.clone());
     
-    joints.push(jointMesh);
+    if (jointMesh) {
+        joints.push(jointMesh);
+    }
+    if (jointMeshEnd) {
+        joints.push(jointMeshEnd);
+    }
 
     (roadsByVertices[roadStart.x] == null) ? roadsByVertices[roadStart.x] = []
             : true;
@@ -231,6 +202,7 @@ Object.getPrototypeOf(sw).endLine = function() {
 
     roadMesh = null;
     jointMesh = null;
+    jointMeshEnd = null;
 };
 sw.addCallback('onMouseDragUp', sw.endLine, []);
 
@@ -263,26 +235,3 @@ Object.getPrototypeOf(sw).initLine = function() {
     sw.setVoxelPositionGrid(false);
 };
 sw.addCallback('init', sw.initLine, []);
-
-//var getAngle = function(a, b) {
-//    return Math.acos(a.dot(b)) / Math.PI * 180;
-//};
-//var getAngle2 = function(x, y) {
-//    return Math.atan2(y,x) / Math.PI * 180;
-//};
-//var z = new THREE.Vector3(1,0,0);
-//var a = new THREE.Vector3(1,0,0);
-//var b = new THREE.Vector3(1,0,1);
-//var c = new THREE.Vector3(0,0,1);
-//var d = new THREE.Vector3(-1,0,1);
-//var e = new THREE.Vector3(0,0,-1);
-//b.normalize();
-//console.log(getAngle2(1,0)); // 0
-//console.log(getAngle2(b.x, b.z)); // 45
-//console.log(getAngle2(0,1));
-//console.log(getAngle2(0,-1));
-//console.log(getAngle(z, a)); // 0
-//console.log(getAngle(z, b)); // 45
-//console.log(getAngle(z, c)); // 90
-//console.log(getAngle(z, d)); // 180
-//console.log(getAngle(z, e)); // -90
